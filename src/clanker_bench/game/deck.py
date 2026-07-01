@@ -31,3 +31,4 @@ def determine_trump(card: Card) -> tuple[None | Suit, bool]:
         return None, True
     else:
         return card.suit, False
+

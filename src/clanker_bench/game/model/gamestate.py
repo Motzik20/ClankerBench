@@ -1,3 +1,5 @@
+from enum import Enum
+
 import pydantic
 
 from clanker_bench.game.model.card import Suit, Card
@@ -11,14 +13,15 @@ class PlayedCard(pydantic.BaseModel):
 
 class TrickState(pydantic.BaseModel):
      starting_player: int
+     current_player: int
      current_trick: list[PlayedCard] = pydantic.Field(default_factory=list)
 
 class RoundState(pydantic.BaseModel):
-     trick_nr: int = pydantic.Field(0)
+     trick_nr: int = pydantic.Field(default=0)
      current_trump_suit: Suit | None
-     awaiting_trump_select: bool
      predicted_player_tricks: list[int] = pydantic.Field(default_factory=list)
      actual_player_tricks: list[int] = pydantic.Field(default_factory=list)
+     played_cards: list[PlayedCard] = pydantic.Field(default_factory=list)
 
 class Observation(pydantic.BaseModel):
      own_hand: list[Card] = pydantic.Field(default_factory=list)
@@ -28,13 +31,20 @@ class Observation(pydantic.BaseModel):
      predicted_player_tricks: list[int | None] = pydantic.Field(default_factory=list)
      actual_player_tricks: list[int] = pydantic.Field(default_factory=list)
 
+class Phase(str, Enum):
+     SELECT_TRUMP = "select_trump"
+     PREDICT = "predict"
+     PLAY = "play"
+     FINISHED = "finished"
+
 class GameState(pydantic.BaseModel):
+     seed: int = pydantic.Field(default=0)
+     phase: Phase
+     round_count: int
+     dealer_id: int
      round_nr: int
      player_count: int
-     current_player: int
      scoreboard: Scoreboard
      players: list[PlayerState]
      round_state: RoundState
      trick_state: TrickState
-     played_cards: list[PlayedCard] = pydantic.Field(default_factory=list)
-
