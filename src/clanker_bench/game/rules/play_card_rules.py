@@ -19,6 +19,11 @@ def get_allowed_suits(current_trick: list[PlayedCard], player_hand: list[Card]) 
     else:
         return {suit for suit in Suit}
 
+def get_allowed_cards(current_trick: list[PlayedCard], player_hand: list[Card]) -> list[Card]:
+    allowed_suits: set[Suit] = get_allowed_suits(current_trick, player_hand)
+    return [card for card in player_hand if card.suit in allowed_suits]
+
+
 def is_legal_card_play(state: GameState, card: Card) -> bool:
     if card.suit not in get_allowed_suits(state.trick_state.current_trick, state.players[state.trick_state.current_player].own_hand):
         return False

@@ -24,7 +24,12 @@ def deal_cards(current_round: int, deck: list[Card]) -> tuple[list[Card], list[C
     remaining = deck[current_round:]
     return dealt, remaining
 
-def determine_trump(card: Card) -> tuple[None | Suit, bool]:
+def determine_trump(card_list: list[Card]) -> tuple[None | Suit, bool]:
+    if not card_list:
+        return None, False
+    card: Card = card_list[0]
+    if card is None:
+        return None, False
     if card.suit == Suit.CLANKER:
         return None, False
     elif card.suit == Suit.SINGULARITY:

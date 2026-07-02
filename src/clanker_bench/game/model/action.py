@@ -4,7 +4,6 @@ import pydantic
 
 from clanker_bench.game.model.card import Card, Suit
 
-
 class PredictTricksAction(pydantic.BaseModel):
     type: Literal["predict_tricks"] = "predict_tricks"
     trick_count: int = pydantic.Field(ge=0)

@@ -3,11 +3,13 @@ from itertools import count
 from clanker_bench.game.deck import shuffle_deck
 from clanker_bench.game.model.action import GameAction, PredictTricksAction, PlayCardAction, SelectTrumpAction
 from clanker_bench.game.model.card import Card, Suit
-from clanker_bench.game.model.exception import IllegalActionException
+from clanker_bench.game.model.exception import IllegalActionException, IllegalStateException
 from clanker_bench.game.model.gamestate import GameState, PlayedCard, TrickState, RoundState, Phase
 from clanker_bench.game.model.scoreboard import RoundScore, Scoreboard
-from clanker_bench.game.rules.play_card_rules import is_legal_card_play, compute_demanded_suit
-from clanker_bench.game.rules.trump_selection_rules import is_legal_trump_select
+from clanker_bench.game.rules.play_card_rules import is_legal_card_play, compute_demanded_suit, get_allowed_suits, \
+    get_allowed_cards
+from clanker_bench.game.rules.predict_trick_rules import is_legal_trick_prediction, legal_trick_predictions
+from clanker_bench.game.rules.trump_selection_rules import is_legal_trump_select, legal_trump_selects
 from clanker_bench.game.setup import deal_round
 
 
@@ -15,7 +17,7 @@ def _is_trick_complete (state: GameState) -> bool:
     next_player = (state.trick_state.current_player + 1) % state.player_count
     return next_player == state.trick_state.starting_player
 
-def _next_player(state: GameState) -> GameState:
+def _move_to_next_player(state: GameState) -> GameState:
     next_player = (state.trick_state.current_player + 1) % state.player_count
     new_state = state.model_copy()
     new_state.trick_state = state.trick_state.model_copy(update={"current_player": next_player})
@@ -72,7 +74,7 @@ def _finish_trick(state: GameState) -> GameState:
     new_state: GameState = state.model_copy()
     winner: int = _determine_trick_winner(new_state)
     # move played cards into the game-wide history
-    new_state.played_cards = [*state.round_state.played_cards, *state.trick_state.current_trick]
+    new_state.round_state.played_cards = [*state.round_state.played_cards, *state.trick_state.current_trick]
     # add win to trick count for actual winner
     new_state.round_state = state.round_state.model_copy(update={
         "actual_player_tricks": [
@@ -87,6 +89,9 @@ def _finish_trick(state: GameState) -> GameState:
 
 
 def _is_round_complete(new_state: GameState) -> bool:
+    # both are zero indexed, trick_nr is incremented after each trick
+    # there are round_nr tricks in the round, so after the last trick is
+    # finished trick_nr should be larger than round_nr
     return new_state.round_state.trick_nr > new_state.round_nr
 
 
@@ -120,7 +125,7 @@ def _finish_round(state: GameState) -> GameState:
     return deal_round(
         seed=state.seed,
         round_nr=state.round_nr + 1,
-        dealer_id=(state.dealer_id + 1) % state.player_count,
+        dealer_id=(state.round_state.dealer_id + 1) % state.player_count,
         player_count=state.player_count,
         scoreboard=scoreboard,
     )
@@ -132,7 +137,7 @@ def _apply_play_card_action(state: GameState, action: PlayCardAction) -> GameSta
 
     new_state = _play_card_to_trick(state, state.trick_state.current_player, action.card)
     if not _is_trick_complete(new_state):
-        return _next_player(new_state)
+        return _move_to_next_player(new_state)
 
     new_state = _finish_trick(new_state)
     if not _is_round_complete(new_state):
@@ -146,12 +151,25 @@ def _apply_select_trump_action(state: GameState, action: SelectTrumpAction) -> G
         raise IllegalActionException(f"Action to select trump {action.suit} is not legal!")
     new_state.round_state = state.round_state.model_copy(update={
         "current_trump_suit": action.suit,
-        "awaiting_trump_select": False,
     })
+    new_state.phase = Phase.PREDICT
     return new_state
 
-def _apply_predict_action(state: GameState, action: GameAction) -> GameState:
-    pass
+def _apply_predict_action(state: GameState, action: PredictTricksAction) -> GameState:
+    new_state = state.model_copy()
+    if not is_legal_trick_prediction(state, action.trick_count):
+        raise IllegalActionException(f"Action to predict {action.trick_count} tricks is not legal!")
+    predicted_tricks = state.round_state.predicted_player_tricks.copy()
+    predicted_tricks[state.trick_state.current_player] = action.trick_count
+    new_state.round_state = state.round_state.model_copy(update={
+        "predicted_player_tricks": predicted_tricks,
+    })
+    new_state = _move_to_next_player(new_state)
+    if new_state.trick_state.current_player == new_state.trick_state.starting_player:
+        new_state.phase = Phase.PLAY
+
+    return new_state
+
 
 def step(state: GameState, action: GameAction) -> GameState:
     match action:
@@ -163,3 +181,38 @@ def step(state: GameState, action: GameAction) -> GameState:
             return _apply_play_card_action(state, action)
         case _:
             raise IllegalActionException(f"{type(action).__name__} nicht erlaubt in Phase {state.phase}")
+
+
+def _get_predict_actions(state:GameState) -> list[PredictTricksAction]:
+    legal_trick_counts :list[int] = legal_trick_predictions(state.round_nr, state.round_state.predicted_player_tricks, state.round_state.dealer_id, state.trick_state.current_player)
+    return [PredictTricksAction(trick_count=trick_count) for trick_count in legal_trick_counts]
+
+def _get_card_actions(state: GameState) -> list[PlayCardAction]:
+    allowed_cards: list[Card] = get_allowed_cards(state.trick_state.current_trick, state.players[state.trick_state.current_player].own_hand)
+    return [PlayCardAction(card=card) for card in allowed_cards]
+
+
+def _get_select_actions(state: GameState) -> list[SelectTrumpAction]:
+    allowed_suits: set[Suit] = legal_trump_selects(state.phase)
+    return [SelectTrumpAction(suit=suit) for suit in allowed_suits]
+
+
+def get_legal_actions(state: GameState) -> list[GameAction]:
+    match state.phase:
+        case Phase.PREDICT:
+            return _get_predict_actions(state)
+        case Phase.PLAY:
+            return _get_card_actions(state)
+        case Phase.SELECT_TRUMP:
+            return _get_select_actions(state)
+        case _:
+            raise IllegalStateException(f"{type(state).__name__} befindet sich in nicht erlaubter {state.phase}")
+
+def active_player(state: GameState) -> int:
+    match state.phase:
+        case Phase.SELECT_TRUMP:
+            return state.round_state.dealer_id
+        case Phase.PLAY | Phase.PREDICT:
+            return state.trick_state.current_player
+        case _:
+            raise IllegalStateException(f"{type(state).__name__} befindet sich in nicht erlaubter {state.phase}")

@@ -34,13 +34,13 @@ class TestInitDeck:
 class TestDetermineTrump:
     @pytest.mark.parametrize("colour", COLOURS)
     def test_colour_card_sets_trump(self, colour):
-        assert determine_trump(Card(suit=colour, rank=7)) == (colour, False)
+        assert determine_trump([Card(suit=colour, rank=7)]) == (colour, False)
 
     def test_clanker_means_no_trump(self):
-        assert determine_trump(Card(suit=Suit.CLANKER)) == (None, False)
+        assert determine_trump([Card(suit=Suit.CLANKER)]) == (None, False)
 
     def test_singularity_means_dealer_selects(self):
-        assert determine_trump(Card(suit=Suit.SINGULARITY)) == (None, True)
+        assert determine_trump([Card(suit=Suit.SINGULARITY)]) == (None, True)
 
 
 class TestDealCards:

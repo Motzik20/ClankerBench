@@ -11,8 +11,7 @@ Rule (German original):
 """
 from clanker_bench.game import engine
 from clanker_bench.game.model.card import Card, Suit
-from clanker_bench.game.model.gamestate import GameState, PlayedCard, RoundState, TrickState, Phase
-from clanker_bench.game.model.scoreboard import Scoreboard
+from tests.game.conftest import make_state
 
 CLANKER = Card(suit=Suit.CLANKER)
 SINGULARITY = Card(suit=Suit.SINGULARITY)
@@ -20,21 +19,6 @@ SINGULARITY = Card(suit=Suit.SINGULARITY)
 
 def card(suit: Suit, rank: int = 1) -> Card:
     return Card(suit=suit, rank=rank)
-
-
-def make_state(played: list[Card], trump: Suit | None = None) -> GameState:
-    current_trick = [PlayedCard(player_id=i, card=c) for i, c in enumerate(played)]
-    return GameState(
-        round_nr=1,
-        round_count=10,
-        dealer_id=0,
-        player_count=max(len(played), 1),
-        scoreboard=Scoreboard(),
-        players=[],
-        phase=Phase.PLAY,
-        round_state=RoundState(current_trump_suit=trump),
-        trick_state=TrickState(starting_player=0, current_player=0, current_trick=current_trick),
-    )
 
 
 class TestIsHigherCard:
@@ -72,36 +56,37 @@ class TestIsHigherCard:
 
 
 class TestDetermineTrickWinner:
+    # `current_trick` nimmt rohe Cards an -> player_id = Reihenfolge (via conftest-Factory).
     def test_first_singularity_always_wins(self):
-        state = make_state([card(Suit.RED, 5), SINGULARITY, card(Suit.GREEN, 13)], trump=Suit.GREEN)
+        state = make_state(current_trick=[card(Suit.RED, 5), SINGULARITY, card(Suit.GREEN, 13)], trump=Suit.GREEN)
         assert engine._determine_trick_winner(state) == 1
 
     def test_first_of_several_singularities_wins(self):
-        state = make_state([card(Suit.RED, 5), SINGULARITY, SINGULARITY], trump=Suit.GREEN)
+        state = make_state(current_trick=[card(Suit.RED, 5), SINGULARITY, SINGULARITY], trump=Suit.GREEN)
         assert engine._determine_trick_winner(state) == 1
 
     def test_highest_trump_wins_without_singularity(self):
-        state = make_state([card(Suit.RED, 5), card(Suit.GREEN, 3), card(Suit.RED, 9)], trump=Suit.GREEN)
+        state = make_state(current_trick=[card(Suit.RED, 5), card(Suit.GREEN, 3), card(Suit.RED, 9)], trump=Suit.GREEN)
         assert engine._determine_trick_winner(state) == 1
 
     def test_highest_demanded_wins_without_trump_or_singularity(self):
-        state = make_state([card(Suit.RED, 2), card(Suit.RED, 13), card(Suit.RED, 7)], trump=None)
+        state = make_state(current_trick=[card(Suit.RED, 2), card(Suit.RED, 13), card(Suit.RED, 7)], trump=None)
         assert engine._determine_trick_winner(state) == 1
 
     def test_offsuit_card_never_wins(self):
         # No trump; demanded is RED, an off-suit GREEN must not win even with high rank.
-        state = make_state([card(Suit.RED, 5), card(Suit.GREEN, 13), card(Suit.RED, 9)], trump=None)
+        state = make_state(current_trick=[card(Suit.RED, 5), card(Suit.GREEN, 13), card(Suit.RED, 9)], trump=None)
         assert engine._determine_trick_winner(state) == 2
 
     def test_clanker_does_not_win_against_colour(self):
-        state = make_state([CLANKER, card(Suit.RED, 5), card(Suit.RED, 9)], trump=None)
+        state = make_state(current_trick=[CLANKER, card(Suit.RED, 5), card(Suit.RED, 9)], trump=None)
         assert engine._determine_trick_winner(state) == 2
 
     def test_only_clankers_first_clanker_wins(self):
-        state = make_state([CLANKER, CLANKER, CLANKER], trump=Suit.GREEN)
+        state = make_state(current_trick=[CLANKER, CLANKER, CLANKER], trump=Suit.GREEN)
         assert engine._determine_trick_winner(state) == 0
 
     def test_clanker_lead_then_singularity_wins(self):
         # CLANKER leads (no influence), SINGULARITY is first real card -> it wins.
-        state = make_state([CLANKER, SINGULARITY, card(Suit.GREEN, 13)], trump=Suit.GREEN)
+        state = make_state(current_trick=[CLANKER, SINGULARITY, card(Suit.GREEN, 13)], trump=Suit.GREEN)
         assert engine._determine_trick_winner(state) == 1

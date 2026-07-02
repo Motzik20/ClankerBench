@@ -20,9 +20,7 @@ def deal_round(
 ) -> GameState:
     initial_deck: list[Card] = init_deck()
     rng = _round_rng(seed, round_nr)
-    shuffled_deck: list[Card] = shuffle_deck(initial_deck, rng)
-    top_card, deck = deal_cards(1, shuffled_deck)
-    trump_suit, awaiting_trump_select = determine_trump(top_card.pop())
+    deck: list[Card] = shuffle_deck(initial_deck, rng)
     round_count = (len(deck) + 1) // player_count
     player_states: list[PlayerState] = []
     for player_id in range(player_count):
@@ -34,20 +32,23 @@ def deal_round(
         )
         player_states.append(player_state)
 
+    top_card, deck = deal_cards(1, deck)
+    trump_suit, awaiting_trump_select = determine_trump(top_card)
+
     starting = (dealer_id + 1) % player_count
     return GameState(
         seed=seed,
         phase= Phase.SELECT_TRUMP if awaiting_trump_select else Phase.PREDICT,
-        round_nr=0,
+        round_nr=round_nr,
         round_count=round_count,
-        dealer_id=dealer_id,
         player_count=player_count,
-        scoreboard=Scoreboard(),
+        scoreboard=scoreboard,
         players=player_states,
         round_state=RoundState(
             current_trump_suit=trump_suit,
             predicted_player_tricks=[-1] * player_count,
             actual_player_tricks=[0] * player_count,
+            dealer_id=dealer_id,
         ),
         trick_state=TrickState(starting_player=starting, current_player=starting),
     )

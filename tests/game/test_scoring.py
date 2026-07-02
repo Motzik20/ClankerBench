@@ -12,26 +12,7 @@ Documented examples:
 import pytest
 
 from clanker_bench.game import engine
-from clanker_bench.game.model.gamestate import GameState, RoundState, TrickState, Phase
-from clanker_bench.game.model.scoreboard import Scoreboard
-
-
-def make_state(predicted: list[int], actual: list[int]) -> GameState:
-    return GameState(
-        round_nr=1,
-        round_count=10,
-        dealer_id=0,
-        player_count=len(predicted),
-        scoreboard=Scoreboard(),
-        players=[],
-        phase=Phase.PLAY,
-        round_state=RoundState(
-            current_trump_suit=None,
-            predicted_player_tricks=list(predicted),
-            actual_player_tricks=list(actual),
-        ),
-        trick_state=TrickState(starting_player=0, current_player=0),
-    )
+from tests.game.conftest import make_state
 
 
 class TestRoundScore:
@@ -48,6 +29,9 @@ class TestRoundScore:
         ],
     )
     def test_round_score(self, predicted, actual, expected):
-        result = engine._calculate_round_score(make_state(predicted, actual))
+        state = make_state(
+            predicted=predicted, actual=actual, player_count=len(predicted)
+        )
+        result = engine._calculate_round_score(state)
         assert result is not None, "_calculate_round_score muss ein Ergebnis liefern"
         assert result.round_score == expected

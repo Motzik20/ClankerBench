@@ -12,43 +12,26 @@ Rule (German original):
 import pytest
 
 from clanker_bench.game.model.card import Card, Suit
-from clanker_bench.game.model.gamestate import GameState, PlayedCard, RoundState, TrickState, Phase
-from clanker_bench.game.model.player_state import PlayerState
-from clanker_bench.game.model.scoreboard import Scoreboard
+from clanker_bench.game.model.gamestate import PlayedCard
 from clanker_bench.game.rules.play_card_rules import (
     compute_demanded_suit,
     get_allowed_suits,
     is_legal_card_play,
 )
+from tests.game.conftest import make_state
 
 CLANKER = Card(suit=Suit.CLANKER)
 SINGULARITY = Card(suit=Suit.SINGULARITY)
 
 
+# Lokale Mini-Helfer: werden in @parametrize (Collection-Zeit) gebraucht,
+# wo Fixtures nicht verfuegbar sind.
 def card(suit: Suit, rank: int = 1) -> Card:
     return Card(suit=suit, rank=rank)
 
 
 def trick(*cards: Card) -> list[PlayedCard]:
     return [PlayedCard(player_id=i, card=c) for i, c in enumerate(cards)]
-
-
-def make_state(hand: list[Card], current_trick: list[PlayedCard]) -> GameState:
-    current_player = 0
-    players = [PlayerState(player_id=current_player, name="cur", own_hand=list(hand))]
-    return GameState(
-        round_nr=1,
-        round_count=10,
-        dealer_id=0,
-        player_count=1,
-        scoreboard=Scoreboard(),
-        players=players,
-        phase=Phase.PLAY,
-        round_state=RoundState(current_trump_suit=None),
-        trick_state=TrickState(
-            starting_player=0, current_player=current_player, current_trick=current_trick
-        ),
-    )
 
 
 class TestComputeDemandedSuit:
@@ -108,7 +91,8 @@ class TestIsLegalCardPlay:
     def test_clanker_and_singularity_always_legal_when_following(self):
         # RED demanded, PLAYER has RED -> CLANKER/SINGULARITY still allowed.
         state = make_state(
-            hand=[card(Suit.RED, 4), CLANKER, SINGULARITY],
+            player_count=1,
+            hands=[[card(Suit.RED, 4), CLANKER, SINGULARITY]],
             current_trick=trick(card(Suit.RED, 2)),
         )
         assert is_legal_card_play(state, CLANKER)
@@ -116,7 +100,8 @@ class TestIsLegalCardPlay:
 
     def test_must_follow_demanded_suit(self):
         state = make_state(
-            hand=[card(Suit.RED, 4), card(Suit.BLUE, 9)],
+            player_count=1,
+            hands=[[card(Suit.RED, 4), card(Suit.BLUE, 9)]],
             current_trick=trick(card(Suit.RED, 2)),
         )
         assert is_legal_card_play(state, card(Suit.RED, 4))
@@ -124,7 +109,8 @@ class TestIsLegalCardPlay:
 
     def test_any_card_when_demanded_suit_not_held(self):
         state = make_state(
-            hand=[card(Suit.BLUE, 9), card(Suit.GREEN, 3)],
+            player_count=1,
+            hands=[[card(Suit.BLUE, 9), card(Suit.GREEN, 3)]],
             current_trick=trick(card(Suit.RED, 2)),
         )
         assert is_legal_card_play(state, card(Suit.BLUE, 9))
@@ -132,7 +118,8 @@ class TestIsLegalCardPlay:
 
     def test_leading_player_may_play_any_card(self):
         state = make_state(
-            hand=[card(Suit.RED, 4), card(Suit.BLUE, 9), CLANKER, SINGULARITY],
+            player_count=1,
+            hands=[[card(Suit.RED, 4), card(Suit.BLUE, 9), CLANKER, SINGULARITY]],
             current_trick=trick(),
         )
         for c in state.players[0].own_hand:

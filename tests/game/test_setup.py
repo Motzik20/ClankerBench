@@ -37,7 +37,7 @@ def test_round_one_deals_single_card_each(player_count):
 def test_trump_matches_revealed_top_card(seed):
     # Replicate the deal deterministically to know the revealed top card.
     deck = shuffle_deck(init_deck(), setup._round_rng(seed, round_nr=0))
-    expected_trump, expected_awaiting = determine_trump(deck[0])
+    expected_trump, expected_awaiting = determine_trump([deck[3]])
 
     state = new_game(Config(player_count=3), seed=seed)
     assert state.round_state.current_trump_suit == expected_trump

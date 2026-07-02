@@ -18,6 +18,7 @@ class TrickState(pydantic.BaseModel):
 
 class RoundState(pydantic.BaseModel):
      trick_nr: int = pydantic.Field(default=0)
+     dealer_id: int
      current_trump_suit: Suit | None
      predicted_player_tricks: list[int] = pydantic.Field(default_factory=list)
      actual_player_tricks: list[int] = pydantic.Field(default_factory=list)
@@ -41,7 +42,6 @@ class GameState(pydantic.BaseModel):
      seed: int = pydantic.Field(default=0)
      phase: Phase
      round_count: int
-     dealer_id: int
      round_nr: int
      player_count: int
      scoreboard: Scoreboard
