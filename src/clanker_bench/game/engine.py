@@ -141,7 +141,7 @@ def _is_round_complete(new_state: GameState) -> bool:
 def _calculate_round_score(state: GameState) -> RoundScore:
     round_score = []
     round_state: RoundState = state.round_state
-    predicted_player_tricks: list[int | None] = round_state.predicted_player_tricks
+    predicted_player_tricks: list[int] = round_state.predicted_player_tricks
     if None in predicted_player_tricks:
         raise RuntimeError
     actual_player_tricks: list[int] = round_state.actual_player_tricks
