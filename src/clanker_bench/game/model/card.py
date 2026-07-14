@@ -1,14 +1,16 @@
-from enum import Enum
+from enum import StrEnum
 
 import pydantic
 
-class Suit(str, Enum):
+
+class Suit(StrEnum):
     BLUE = "Blue"
     GREEN = "Green"
     RED = "Red"
     YELLOW = "Yellow"
     CLANKER = "Clanker"
     SINGULARITY = "Singularity"
+
 
 class Card(pydantic.BaseModel):
     model_config = pydantic.ConfigDict(frozen=True)

@@ -9,6 +9,7 @@ Rule (German original):
     werden muss (das kann auch die Trumpffarbe sein). Wer sie hat, muss sie
     spielen; wer sie nicht hat, darf eine beliebige andere Karte spielen.
 """
+
 import pytest
 
 from clanker_bench.game.model.card import Card, Suit
@@ -67,7 +68,9 @@ class TestGetAllowedSuits:
         assert allowed == set(Suit)
 
     def test_singularity_led_trick_allows_anything(self):
-        allowed = get_allowed_suits(trick(SINGULARITY), [card(Suit.RED), card(Suit.BLUE)])
+        allowed = get_allowed_suits(
+            trick(SINGULARITY), [card(Suit.RED), card(Suit.BLUE)],
+        )
         assert allowed == set(Suit)
 
     def test_must_follow_demanded_suit_when_held(self):

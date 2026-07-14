@@ -6,7 +6,6 @@ Rules:
     -> kein fester Trumpf; SINGULARITY -> Geber waehlt).
   - Trumpf ist nie eine CLANKER- oder SINGULARITY-"Farbe".
 """
-import random
 
 import pytest
 
@@ -41,13 +40,20 @@ def test_trump_matches_revealed_top_card(seed):
 
     state = new_game(Config(player_count=3), seed=seed)
     assert state.round_state.current_trump_suit == expected_trump
-    assert state.phase == Phase.SELECT_TRUMP if expected_awaiting else state.phase != Phase.SELECT_TRUMP
+    assert (
+        state.phase == Phase.SELECT_TRUMP
+        if expected_awaiting
+        else state.phase != Phase.SELECT_TRUMP
+    )
 
 
 @pytest.mark.parametrize("seed", SEEDS)
 def test_trump_is_never_a_special_suit(seed):
     state = new_game(Config(player_count=3), seed=seed)
-    assert state.round_state.current_trump_suit in {None, *(Suit.RED, Suit.BLUE, Suit.GREEN, Suit.YELLOW)}
+    assert state.round_state.current_trump_suit in {
+        None,
+        *(Suit.RED, Suit.BLUE, Suit.GREEN, Suit.YELLOW),
+    }
 
 
 @pytest.mark.parametrize("seed", SEEDS)
@@ -55,6 +61,7 @@ def test_awaiting_trump_implies_no_trump_yet(seed):
     state = new_game(Config(player_count=3), seed=seed)
     if state.phase == Phase.SELECT_TRUMP:
         assert state.round_state.current_trump_suit is None
+
 
 def test_player_names_are_unique():
     # Every player has unique name

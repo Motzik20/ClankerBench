@@ -1,5 +1,3 @@
-import pytest
-
 from clanker_bench.game.model.card import Card, Suit
 from clanker_bench.game.model.gamestate import (
     GameState,

@@ -4,6 +4,7 @@ Rule: Wird ein SINGULARITY aufgedeckt, bestimmt der ausgebende Spieler die
 Trumpffarbe, nachdem er seine Handkarten angeschaut hat. Es kann nur eine der
 vier echten Farben (RED/BLUE/GREEN/YELLOW) als Trumpf gewaehlt werden.
 """
+
 import pytest
 
 from clanker_bench.game.model.card import Suit
