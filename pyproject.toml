@@ -4,14 +4,51 @@ version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
     "pydantic>=2.13.4",
+    "pyrefly>=0.60.0",
 ]
 
 [dependency-groups]
 dev = [
     "hypothesis>=6.155.7",
     "pytest>=9.1.1",
+    "ruff>=0.15.21",
 ]
 
 
 [tool.pytest.ini_options]
 pythonpath = ["src", "tests"]
+
+[tool.ruff.lint]
+extend-select = [
+    "F",        # Pyflakes rules
+    "W",        # PyCodeStyle warnings
+    "E",        # PyCodeStyle errors
+    "I",        # Sort imports properly
+    "UP",       # Warn if certain things can changed due to newer Python versions
+    "C4",       # Catch incorrect use of comprehensions, dict, list, etc
+    "FA",       # Enforce from __future__ import annotations
+    "ISC",      # Good use of string concatenation
+    "ICN",      # Use common import conventions
+    "RET",      # Good return practices
+    "SIM",      # Common simplification rules
+    "TID",      # Some good import practices
+    "TC",       # Enforce importing certain types in a TYPE_CHECKING block
+    "PTH",      # Use pathlib instead of os.path
+    "TD",       # Be diligent with TO-DO comments
+    "NPY",      # Some numpy-specific things
+    "A",   # detect shadowed builtins
+    "BLE", # disallow catch-all exceptions
+    "COM", # enforce trailing comma rules
+    "FBT", # detect boolean traps
+    "N",   # enforce naming conventions, e.g. ClassName vs function_name
+]
+
+ignore = ["E501"] # Formatter does that
+
+[tool.pyrefly]
+project-includes = [
+    "**/*.py*",
+    "**/*.ipynb",
+]
+
+search-path = ["src", "."]

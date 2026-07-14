@@ -1,6 +1,6 @@
-
-class IllegalActionException(Exception):
+class IllegalActionError(Exception):
     pass
 
-class IllegalStateException(Exception):
+
+class IllegalStateError(Exception):
     pass
