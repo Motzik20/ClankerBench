@@ -4,6 +4,6 @@ from clanker_bench.game.model.gamestate import Observation
 import random
 
 class RandomAgent(Agent):
-    def act(self, observation: Observation, legal_actions: list[GameAction]) -> GameAction:
-        rng = random.randint(0, len(legal_actions)-1)
-        return legal_actions[rng]
+    def act(self, observation: Observation, action_space: tuple[GameAction, ...]) -> GameAction:
+        rng = random.randint(0, len(action_space)-1)
+        return action_space[rng]

@@ -183,21 +183,21 @@ def step(state: GameState, action: GameAction) -> GameState:
             raise IllegalActionException(f"{type(action).__name__} nicht erlaubt in Phase {state.phase}")
 
 
-def _get_predict_actions(state:GameState) -> list[PredictTricksAction]:
+def _get_predict_actions(state:GameState) -> tuple[PredictTricksAction, ...]:
     legal_trick_counts :list[int] = legal_trick_predictions(state.round_nr, state.round_state.predicted_player_tricks, state.round_state.dealer_id, state.trick_state.current_player)
-    return [PredictTricksAction(trick_count=trick_count) for trick_count in legal_trick_counts]
+    return tuple(PredictTricksAction(trick_count=trick_count) for trick_count in legal_trick_counts)
 
-def _get_card_actions(state: GameState) -> list[PlayCardAction]:
+def _get_card_actions(state: GameState) -> tuple[PlayCardAction, ...]:
     allowed_cards: list[Card] = get_allowed_cards(state.trick_state.current_trick, state.players[state.trick_state.current_player].own_hand)
-    return [PlayCardAction(card=card) for card in allowed_cards]
+    return tuple(PlayCardAction(card=card) for card in allowed_cards)
 
 
-def _get_select_actions(state: GameState) -> list[SelectTrumpAction]:
+def _get_select_actions(state: GameState) -> tuple[SelectTrumpAction, ...]:
     allowed_suits: set[Suit] = legal_trump_selects(state.phase)
-    return [SelectTrumpAction(suit=suit) for suit in allowed_suits]
+    return tuple(SelectTrumpAction(suit=suit) for suit in allowed_suits)
 
 
-def get_legal_actions(state: GameState) -> list[GameAction]:
+def get_action_space(state: GameState) -> tuple[GameAction, ...]:
     match state.phase:
         case Phase.PREDICT:
             return _get_predict_actions(state)
