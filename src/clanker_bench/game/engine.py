@@ -16,7 +16,7 @@ from clanker_bench.game.model.gamestate import (
     Phase,
     PlayedCard,
     RoundState,
-    TrickState, Observation,
+    TrickState,
 )
 from clanker_bench.game.model.scoreboard import RoundScore
 from clanker_bench.game.rules.play_card_rules import (
