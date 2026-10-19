@@ -13,7 +13,8 @@ def compute_demanded_suit(current_trick: list[PlayedCard]) -> Suit | None:
 
 
 def get_allowed_suits(
-    current_trick: list[PlayedCard], player_hand: list[Card],
+    current_trick: list[PlayedCard],
+    player_hand: list[Card],
 ) -> set[Suit]:
     suits_in_hand: set[Suit] = {card.suit for card in player_hand}
     demanded_suit: Suit | None = compute_demanded_suit(current_trick)
@@ -24,7 +25,8 @@ def get_allowed_suits(
 
 
 def get_allowed_cards(
-    current_trick: list[PlayedCard], player_hand: list[Card],
+    current_trick: list[PlayedCard],
+    player_hand: list[Card],
 ) -> list[Card]:
     allowed_suits: set[Suit] = get_allowed_suits(current_trick, player_hand)
     return [card for card in player_hand if card.suit in allowed_suits]

@@ -7,7 +7,9 @@ from clanker_bench.game.model.gamestate import Observation
 
 class RandomAgent(Agent):
     def act(
-        self, observation: Observation, action_space: tuple[GameAction, ...],
+        self,
+        observation: Observation,
+        action_space: tuple[GameAction, ...],
     ) -> GameAction:
         rng = random.randint(0, len(action_space) - 1)
         return action_space[rng]

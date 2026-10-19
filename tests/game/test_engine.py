@@ -143,7 +143,9 @@ class TestNextPlayer:
     )
     def test_next_player(self, current_player, player_count):
         state = make_state(
-            player_count=player_count, starting_player=0, current_player=current_player,
+            player_count=player_count,
+            starting_player=0,
+            current_player=current_player,
         )
         next_state = engine._move_to_next_player(state)
         next_player = (current_player + 1) % player_count

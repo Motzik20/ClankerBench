@@ -16,7 +16,10 @@ def tricks_in_round(round_nr: int) -> int:
 
 
 def legal_trick_predictions(
-    round_nr: int, players_predicted_tricks: list[int], dealer_id: int, player_id: int,
+    round_nr: int,
+    players_predicted_tricks: list[int],
+    dealer_id: int,
+    player_id: int,
 ) -> list[int]:
     num_tricks = tricks_in_round(round_nr)
     candidates = range(0, num_tricks + 1)  # 0..num_tricks inclusive

@@ -69,7 +69,8 @@ class TestGetAllowedSuits:
 
     def test_singularity_led_trick_allows_anything(self):
         allowed = get_allowed_suits(
-            trick(SINGULARITY), [card(Suit.RED), card(Suit.BLUE)],
+            trick(SINGULARITY),
+            [card(Suit.RED), card(Suit.BLUE)],
         )
         assert allowed == set(Suit)
 

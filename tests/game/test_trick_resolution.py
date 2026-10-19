@@ -25,44 +25,74 @@ def card(suit: Suit, rank: int = 1) -> Card:
 class TestIsHigherCard:
     def test_singularity_beats_trump(self):
         assert engine._is_higher_card(
-            SINGULARITY, card(Suit.GREEN, 13), Suit.GREEN, Suit.RED,
+            SINGULARITY,
+            card(Suit.GREEN, 13),
+            Suit.GREEN,
+            Suit.RED,
         )
         assert not engine._is_higher_card(
-            card(Suit.GREEN, 13), SINGULARITY, Suit.GREEN, Suit.RED,
+            card(Suit.GREEN, 13),
+            SINGULARITY,
+            Suit.GREEN,
+            Suit.RED,
         )
 
     def test_trump_beats_demanded_and_offsuit(self):
         # Trump GREEN, demanded RED.
         assert engine._is_higher_card(
-            card(Suit.GREEN, 2), card(Suit.RED, 13), Suit.GREEN, Suit.RED,
+            card(Suit.GREEN, 2),
+            card(Suit.RED, 13),
+            Suit.GREEN,
+            Suit.RED,
         )
         assert not engine._is_higher_card(
-            card(Suit.RED, 13), card(Suit.GREEN, 2), Suit.GREEN, Suit.RED,
+            card(Suit.RED, 13),
+            card(Suit.GREEN, 2),
+            Suit.GREEN,
+            Suit.RED,
         )
 
     def test_higher_trump_beats_lower_trump(self):
         assert engine._is_higher_card(
-            card(Suit.GREEN, 10), card(Suit.GREEN, 5), Suit.GREEN, Suit.RED,
+            card(Suit.GREEN, 10),
+            card(Suit.GREEN, 5),
+            Suit.GREEN,
+            Suit.RED,
         )
         assert not engine._is_higher_card(
-            card(Suit.GREEN, 5), card(Suit.GREEN, 10), Suit.GREEN, Suit.RED,
+            card(Suit.GREEN, 5),
+            card(Suit.GREEN, 10),
+            Suit.GREEN,
+            Suit.RED,
         )
 
     def test_demanded_beats_offsuit(self):
         # No trump; demanded RED beats an unrelated colour regardless of rank.
         assert engine._is_higher_card(
-            card(Suit.RED, 2), card(Suit.BLUE, 13), None, Suit.RED,
+            card(Suit.RED, 2),
+            card(Suit.BLUE, 13),
+            None,
+            Suit.RED,
         )
         assert not engine._is_higher_card(
-            card(Suit.BLUE, 13), card(Suit.RED, 2), None, Suit.RED,
+            card(Suit.BLUE, 13),
+            card(Suit.RED, 2),
+            None,
+            Suit.RED,
         )
 
     def test_higher_rank_wins_within_demanded_suit(self):
         assert engine._is_higher_card(
-            card(Suit.RED, 10), card(Suit.RED, 5), None, Suit.RED,
+            card(Suit.RED, 10),
+            card(Suit.RED, 5),
+            None,
+            Suit.RED,
         )
         assert not engine._is_higher_card(
-            card(Suit.RED, 5), card(Suit.RED, 10), None, Suit.RED,
+            card(Suit.RED, 5),
+            card(Suit.RED, 10),
+            None,
+            Suit.RED,
         )
 
     def test_clanker_loses_to_everything(self):
@@ -73,7 +103,10 @@ class TestIsHigherCard:
         # Two SINGULARITY / two CLANKER: the later one must NOT count as higher,
         # so the first-played one stays the winner.
         assert not engine._is_higher_card(
-            SINGULARITY, SINGULARITY, Suit.GREEN, Suit.RED,
+            SINGULARITY,
+            SINGULARITY,
+            Suit.GREEN,
+            Suit.RED,
         )
         assert not engine._is_higher_card(CLANKER, CLANKER, Suit.GREEN, Suit.RED)
 
@@ -118,7 +151,8 @@ class TestDetermineTrickWinner:
 
     def test_clanker_does_not_win_against_colour(self):
         state = make_state(
-            current_trick=[CLANKER, card(Suit.RED, 5), card(Suit.RED, 9)], trump=None,
+            current_trick=[CLANKER, card(Suit.RED, 5), card(Suit.RED, 9)],
+            trump=None,
         )
         assert engine._determine_trick_winner(state) == 2
 
@@ -129,6 +163,7 @@ class TestDetermineTrickWinner:
     def test_clanker_lead_then_singularity_wins(self):
         # CLANKER leads (no influence), SINGULARITY is first real card -> it wins.
         state = make_state(
-            current_trick=[CLANKER, SINGULARITY, card(Suit.GREEN, 13)], trump=Suit.GREEN,
+            current_trick=[CLANKER, SINGULARITY, card(Suit.GREEN, 13)],
+            trump=Suit.GREEN,
         )
         assert engine._determine_trick_winner(state) == 1

@@ -13,6 +13,7 @@ from clanker_bench.game.model.exception import (
 )
 from clanker_bench.game.model.gamestate import (
     GameState,
+    Observation,
     Phase,
     PlayedCard,
     RoundState,
@@ -66,14 +67,18 @@ def _play_card_to_trick(state: GameState, player_id: int, card: Card) -> GameSta
     )
     new_state.players = [
         p.model_copy(update={"own_hand": _remove_card_from_hand(card, p.own_hand)})
-        if p.player_id == player_id else p
+        if p.player_id == player_id
+        else p
         for p in state.players
     ]
     return new_state
 
 
 def _is_higher_card(
-    new_card: Card, old_card: Card, trump_suit: Suit | None, demanded_suit: Suit | None,
+    new_card: Card,
+    old_card: Card,
+    trump_suit: Suit | None,
+    demanded_suit: Suit | None,
 ) -> bool:
     suit_map = {Suit.SINGULARITY: 4, trump_suit: 3, demanded_suit: 2, Suit.CLANKER: 0}
     for suit in Suit:
@@ -154,7 +159,8 @@ def _calculate_round_score(state: GameState) -> RoundScore:
         else:
             round_score.append(
                 -abs(
-                    predicted_player_tricks[player_id] - actual_player_tricks[player_id],
+                    predicted_player_tricks[player_id]
+                    - actual_player_tricks[player_id],
                 )
                 * 10,
             )
@@ -190,7 +196,9 @@ def _apply_play_card_action(state: GameState, action: PlayCardAction) -> GameSta
         raise IllegalActionError(f"Action to play the {action.card} is not legal!")
 
     new_state = _play_card_to_trick(
-        state, state.trick_state.current_player, action.card,
+        state,
+        state.trick_state.current_player,
+        action.card,
     )
     if not _is_trick_complete(new_state):
         return _move_to_next_player(new_state)
@@ -202,7 +210,8 @@ def _apply_play_card_action(state: GameState, action: PlayCardAction) -> GameSta
 
 
 def _apply_select_trump_action(
-    state: GameState, action: SelectTrumpAction,
+    state: GameState,
+    action: SelectTrumpAction,
 ) -> GameState:
     new_state = state.model_copy()
     if not is_legal_trump_select(state, action.suit):
@@ -302,3 +311,16 @@ def active_player(state: GameState) -> int:
             raise IllegalStateError(
                 f"{type(state).__name__} befindet sich in nicht erlaubter {state.phase}",
             )
+
+
+def observe(state: GameState, player_id: int) -> Observation:
+    return Observation(
+        own_hand=state.players[player_id].own_hand,
+        current_trump_suit=state.round_state.current_trump_suit,
+        trick_state=state.trick_state.model_copy(deep=True),
+        played_cards=state.round_state.played_cards,
+        predicted_player_tricks=state.round_state.predicted_player_tricks,
+        actual_player_tricks=state.round_state.actual_player_tricks,
+        player_id=player_id,
+        dealer_id=state.round_state.dealer_id,
+    )

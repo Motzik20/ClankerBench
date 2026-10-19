@@ -31,7 +31,9 @@ class TestRoundScore:
     )
     def test_round_score(self, predicted, actual, expected):
         state = make_state(
-            predicted=predicted, actual=actual, player_count=len(predicted),
+            predicted=predicted,
+            actual=actual,
+            player_count=len(predicted),
         )
         result = engine._calculate_round_score(state)
         assert result is not None, "_calculate_round_score muss ein Ergebnis liefern"

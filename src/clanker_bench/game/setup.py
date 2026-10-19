@@ -16,7 +16,11 @@ def _round_rng(seed: int, round_nr: int) -> random.Random:
 
 
 def deal_round(
-    seed: int, round_nr: int, dealer_id: int, player_count: int, scoreboard: Scoreboard,
+    seed: int,
+    round_nr: int,
+    dealer_id: int,
+    player_count: int,
+    scoreboard: Scoreboard,
 ) -> GameState:
     initial_deck: list[Card] = init_deck()
     rng = _round_rng(seed, round_nr)
@@ -26,7 +30,9 @@ def deal_round(
     for player_id in range(player_count):
         player_hand, deck = deal_cards(round_nr + 1, deck)
         player_state: PlayerState = PlayerState(
-            player_id=player_id, name=f"Player {player_id + 1}", own_hand=player_hand,
+            player_id=player_id,
+            name=f"Player {player_id + 1}",
+            own_hand=player_hand,
         )
         player_states.append(player_state)
 

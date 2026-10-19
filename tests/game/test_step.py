@@ -79,7 +79,8 @@ class TestPredictBranch:
         state = step(state, PredictTricksAction(trick_count=1))  # p1
         state = step(state, PredictTricksAction(trick_count=1))  # p2
         state = step(
-            state, PredictTricksAction(trick_count=0),
+            state,
+            PredictTricksAction(trick_count=0),
         )  # p0 (Dealer, 1 verboten)
         assert state.round_state.predicted_player_tricks == [0, 1, 1]
         assert state.phase == Phase.PLAY
@@ -114,7 +115,8 @@ class TestPlayCardBranch:
     def test_playing_a_card_advances_to_next_player(self):
         hands = [[card(Suit.RED, 5)], [card(Suit.RED, 9)], [card(Suit.RED, 2)]]
         new = step(
-            self._state(make_state, hands), PlayCardAction(card=card(Suit.RED, 5)),
+            self._state(make_state, hands),
+            PlayCardAction(card=card(Suit.RED, 5)),
         )
         assert len(new.trick_state.current_trick) == 1
         assert card(Suit.RED, 5) not in new.players[0].own_hand
@@ -138,7 +140,11 @@ class TestPlayCardBranch:
         # round_nr=0 => genau 1 Stich; danach Rundenwechsel (round_count=2).
         hands = [[card(Suit.RED, 5)], [card(Suit.RED, 9)], [card(Suit.RED, 2)]]
         state = self._state(
-            make_state, hands, round_nr=0, round_count=2, predicted=[0, 1, 0],
+            make_state,
+            hands,
+            round_nr=0,
+            round_count=2,
+            predicted=[0, 1, 0],
         )
         state = step(state, PlayCardAction(card=card(Suit.RED, 5)))
         state = step(state, PlayCardAction(card=card(Suit.RED, 9)))

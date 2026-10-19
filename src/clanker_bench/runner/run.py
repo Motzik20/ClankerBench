@@ -1,8 +1,7 @@
 from typing import TYPE_CHECKING
 
 from clanker_bench.agents.agent import Agent
-from clanker_bench.game.engine import active_player, get_action_space, step
-from clanker_bench.game.model.card import Suit
+from clanker_bench.game.engine import active_player, get_action_space, observe, step
 from clanker_bench.game.model.config import Config
 from clanker_bench.game.model.gamestate import GameState, Observation, Phase
 from clanker_bench.game.model.scoreboard import Scoreboard
@@ -20,9 +19,8 @@ def play_game(agents: list[Agent], seed: int) -> Scoreboard:
         action_space: tuple[GameAction, ...] = get_action_space(game_state)
         actor: int = active_player(game_state)
         agent: Agent = agents[actor]
-        action: GameAction = agent.act(
-            Observation(current_trump_suit=Suit.BLUE), action_space,
-        )
+        observation: Observation = observe(game_state, actor)
+        action: GameAction = agent.act(observation, action_space)
         game_state: GameState = step(game_state, action)
         print(render(game_state))
     return game_state.scoreboard

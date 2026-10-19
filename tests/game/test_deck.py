@@ -62,11 +62,13 @@ class TestShuffleDeck:
         deck = init_deck()
         shuffled = shuffle_deck(deck, random.Random(123))
         assert sorted(shuffled, key=lambda c: (c.suit.value, c.rank)) == sorted(
-            deck, key=lambda c: (c.suit.value, c.rank),
+            deck,
+            key=lambda c: (c.suit.value, c.rank),
         )
 
     def test_shuffle_is_deterministic_for_seed(self):
         deck = init_deck()
         assert shuffle_deck(deck, random.Random(1)) == shuffle_deck(
-            deck, random.Random(1),
+            deck,
+            random.Random(1),
         )

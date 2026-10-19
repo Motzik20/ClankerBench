@@ -20,10 +20,13 @@ ROUNDS_BY_PLAYER_COUNT = {3: 20, 4: 15, 5: 12, 6: 10}
 
 class TestRoundStructure:
     @pytest.mark.parametrize(
-        "player_count, expected_rounds", ROUNDS_BY_PLAYER_COUNT.items(),
+        "player_count, expected_rounds",
+        ROUNDS_BY_PLAYER_COUNT.items(),
     )
     def test_round_count_is_deck_divided_by_players(
-        self, player_count, expected_rounds,
+        self,
+        player_count,
+        expected_rounds,
     ):
         assert (
             new_game(Config(player_count=player_count), 0).round_count

@@ -35,7 +35,12 @@ class TestLegalTrickPredicts:
         ],
     )
     def test_legal_trick_predicts(
-        self, predicted_tricks, expected, player_id, dealer_id, round_nr,
+        self,
+        predicted_tricks,
+        expected,
+        player_id,
+        dealer_id,
+        round_nr,
     ):
         assert (
             legal_trick_predictions(round_nr, predicted_tricks, dealer_id, player_id)
