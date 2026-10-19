@@ -284,7 +284,10 @@ def _get_card_actions(state: GameState) -> tuple[PlayCardAction, ...]:
 
 def _get_select_actions(state: GameState) -> tuple[SelectTrumpAction, ...]:
     allowed_suits: set[Suit] = legal_trump_selects(state.phase)
-    return tuple(SelectTrumpAction(suit=suit) for suit in allowed_suits)
+    return tuple(
+        SelectTrumpAction(suit=suit)
+        for suit in sorted(allowed_suits, key=list(Suit).index)
+    )
 
 
 def get_action_space(state: GameState) -> tuple[GameAction, ...]:
