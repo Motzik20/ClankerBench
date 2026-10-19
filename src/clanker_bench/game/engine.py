@@ -16,7 +16,7 @@ from clanker_bench.game.model.gamestate import (
     Phase,
     PlayedCard,
     RoundState,
-    TrickState,
+    TrickState, Observation,
 )
 from clanker_bench.game.model.scoreboard import RoundScore
 from clanker_bench.game.rules.play_card_rules import (
@@ -64,8 +64,11 @@ def _play_card_to_trick(state: GameState, player_id: int, card: Card) -> GameSta
             "current_demanded_suit": compute_demanded_suit(new_trick),
         },
     )
-    player_hand: list[Card] = state.players[player_id].own_hand
-    new_state.players[player_id].own_hand = _remove_card_from_hand(card, player_hand)
+    new_state.players = [
+        p.model_copy(update={"own_hand": _remove_card_from_hand(card, p.own_hand)})
+        if p.player_id == player_id else p
+        for p in state.players
+    ]
     return new_state
 
 
@@ -109,12 +112,8 @@ def _determine_trick_winner(state: GameState) -> int:
 def _finish_trick(state: GameState) -> GameState:
     new_state: GameState = state.model_copy()
     winner: int = _determine_trick_winner(new_state)
-    # move played cards into the game-wide history
-    new_state.round_state.played_cards = [
-        *state.round_state.played_cards,
-        *state.trick_state.current_trick,
-    ]
     # add win to trick count for actual winner
+    # and move played cards into the game-wide history
     new_state.round_state = state.round_state.model_copy(
         update={
             "actual_player_tricks": [
@@ -122,6 +121,10 @@ def _finish_trick(state: GameState) -> GameState:
                 for player_id, count in enumerate(
                     state.round_state.actual_player_tricks,
                 )
+            ],
+            "played_cards": [
+                *state.round_state.played_cards,
+                *state.trick_state.current_trick,
             ],
         },
     )

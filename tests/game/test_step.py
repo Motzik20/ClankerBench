@@ -4,17 +4,21 @@ SELECT_TRUMP, PREDICT und PLAY — inkl. Phasenuebergaenge.
 GameStates kommen aus dem zentralen `make_state`-Fixture (siehe conftest.py).
 """
 
+import random
+
 import pytest
 
-from clanker_bench.game.engine import step
+from clanker_bench.game.engine import get_action_space, step
 from clanker_bench.game.model.action import (
     PlayCardAction,
     PredictTricksAction,
     SelectTrumpAction,
 )
 from clanker_bench.game.model.card import Card, Suit
+from clanker_bench.game.model.config import Config
 from clanker_bench.game.model.exception import IllegalActionError
 from clanker_bench.game.model.gamestate import Phase, PlayedCard
+from clanker_bench.game.setup import new_game
 from tests.game.conftest import make_state
 
 
@@ -159,3 +163,18 @@ class TestPlayCardBranch:
         )
         with pytest.raises(IllegalActionError):
             step(state, PlayCardAction(card=card(Suit.BLUE, 3)))
+
+
+class TestStepPurity:
+    # step() darf den uebergebenen State nie veraendern. Ein ganzes Zufallsspiel
+    # deckt alle Phasen ab, auch Stich- und Rundenende.
+    @pytest.mark.parametrize("player_count", [3, 4, 6])
+    @pytest.mark.parametrize("seed", [0, 1, 2])
+    def test_step_does_not_mutate_input_state(self, player_count, seed):
+        rng = random.Random(seed)
+        state = new_game(Config(player_count=player_count), seed=seed)
+        while state.phase != Phase.FINISHED:
+            before = state.model_dump()
+            new_state = step(state, rng.choice(get_action_space(state)))
+            assert state.model_dump() == before
+            state = new_state
